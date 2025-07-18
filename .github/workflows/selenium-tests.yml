@@ -2,7 +2,7 @@ name: Selenium Tests
 
 on:
   push:
-    branches: [ main, develop ]
+    branches: [ main ]
   pull_request:
     branches: [ main ]
 
@@ -19,11 +19,6 @@ jobs:
       with:
         python-version: '3.11'
         
-    - name: Install system dependencies
-      run: |
-        sudo apt-get update
-        sudo apt-get install -y wget unzip
-        
     - name: Install Chrome
       run: |
         wget -q -O - https://dl.google.com/linux/linux_signing_key.pub | sudo apt-key add -
@@ -31,28 +26,21 @@ jobs:
         sudo apt-get update
         sudo apt-get install -y google-chrome-stable
         
-    - name: Create virtual environment
+    - name: Install dependencies
       run: |
         python -m venv .venv
         source .venv/bin/activate
-        pip install --upgrade pip
-        
-    - name: Install Python dependencies
-      run: |
-        source .venv/bin/activate
         pip install -r requirements.txt
-        pip install pytest pytest-html
         
-    - name: Run Selenium tests
+    - name: Run tests
       run: |
         source .venv/bin/activate
-        python -m pytest tests/ -v --html=report.html --self-contained-html
+        python -m pytest tests/ -v --junitxml=test-results.xml
         
-    - name: Upload test results
+    - name: Upload results
       uses: actions/upload-artifact@v4
       if: always()
       with:
         name: test-results
-        path: |
-          report.html
-          *.png 
+        path: test-results.xml
+        retention-days: 7 
